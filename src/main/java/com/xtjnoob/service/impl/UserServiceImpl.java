@@ -30,6 +30,11 @@ public class UserServiceImpl implements UserService {
         return userModel;
     }
 
+    @Override
+    public void register(UserModel userModel) {
+
+    }
+
     /**
      * 将UserDO对象和UserPasswordDO对象转化成UserModel对象
      * */
