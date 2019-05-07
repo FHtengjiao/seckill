@@ -1,7 +1,8 @@
 package com.xtjnoob.service;
 
 import com.xtjnoob.bean.UserDO;
+import com.xtjnoob.service.model.UserModel;
 
 public interface UserService {
-    UserDO getUserById(Integer id);
+    UserModel getUserById(Integer id);
 }
