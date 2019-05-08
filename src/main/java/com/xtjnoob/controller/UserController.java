@@ -1,7 +1,5 @@
 package com.xtjnoob.controller;
 
-import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
-import com.xtjnoob.bean.UserDO;
 import com.xtjnoob.bean.view.UserView;
 import com.xtjnoob.error.BusinessException;
 import com.xtjnoob.error.EnumBusinessException;
@@ -11,16 +9,18 @@ import com.xtjnoob.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import sun.misc.BASE64Encoder;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
-@RestController
+@RestController("userController")
 @RequestMapping("/user")
+@CrossOrigin(allowCredentials = "true", allowedHeaders = {"*"})
 public class UserController extends BaseController {
 
     @Autowired
@@ -32,17 +32,39 @@ public class UserController extends BaseController {
     @PostMapping("/register")
     public CommonReturnType userRegister(@RequestParam("optCode") String optCode,
                                          @RequestParam("name") String name,
-                                         @RequestParam("age") Integer age,
-                                         @RequestParam("gender")Integer gender,
+                                         @RequestParam("age") Byte age,
+                                         @RequestParam("gender") Byte gender,
                                          @RequestParam("telephone") String telephone,
-                                         @RequestParam("password") String password) throws BusinessException {
+                                         @RequestParam("password") String password) throws BusinessException, UnsupportedEncodingException, NoSuchAlgorithmException {
         // 验证手机号和optCode是否一致
-        String sessionCode = (String) request.getSession().getAttribute(telephone);
+        int sessionCode = (int) request.getSession().getAttribute(telephone);
 
-        if (!com.alibaba.druid.util.StringUtils.equals(sessionCode, optCode)) {
+        if (!com.alibaba.druid.util.StringUtils.equals(String.valueOf(sessionCode), optCode)) {
             throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR, "短信验证码错误");
         }
 
+        // 用户注册流程
+        UserModel userModel = new UserModel();
+        userModel.setName(name);
+        userModel.setAge(age);
+        userModel.setGender(gender);
+        userModel.setTelephone(telephone);
+        userModel.setRegisterMode("by telephone");
+        userModel.setEncrtyPassword(EncodeByMD5(password));
+
+        userService.register(userModel);
+
+        return CommonReturnType.create(null);
+    }
+
+    public String EncodeByMD5(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        // 确定计算方法
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        BASE64Encoder base64Encoder = new BASE64Encoder();
+        // 加密字符串
+        String encode = base64Encoder.encode(md5.digest(string.getBytes("utf8")));
+
+        return encode;
     }
 
     @PostMapping("/getopt")
@@ -60,7 +82,7 @@ public class UserController extends BaseController {
         int optCode = random.nextInt(899999) + 100000;
 
         // 保存验证码，关联用户手机号
-        request.getSession().setAttribute(telephone, telephone);
+        request.getSession().setAttribute(telephone, optCode);
         System.out.println("telephone = " + telephone + "& optCode = " + optCode);
 
         // 发送验证码

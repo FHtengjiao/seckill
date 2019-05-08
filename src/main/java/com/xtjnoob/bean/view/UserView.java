@@ -4,7 +4,7 @@ public class UserView {
 
     private Integer id;
     private String name;
-    private String gender;
+    private Byte gender;
     private Byte age;
     private String telephone;
 
@@ -24,11 +24,11 @@ public class UserView {
         this.name = name;
     }
 
-    public String getGender() {
+    public Byte getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Byte gender) {
         this.gender = gender;
     }
 
