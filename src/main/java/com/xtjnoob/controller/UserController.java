@@ -29,6 +29,27 @@ public class UserController extends BaseController {
     @Autowired
     private HttpServletRequest request;
 
+    /**
+     * 用户登录API
+     * */
+    @PostMapping("/login")
+    public CommonReturnType login(@RequestParam("telephone") String telephone,
+                                  @RequestParam("password") String password) throws BusinessException, UnsupportedEncodingException, NoSuchAlgorithmException {
+        // 判空处理
+        if (StringUtils.isEmpty(telephone) || StringUtils.isEmpty(password)) {
+            throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR, "非法参数");
+        }
+        UserModel userModel = userService.validateLogin(telephone, EncodeByMD5(password));
+
+        request.getSession().setAttribute("IS_LOGIN", true);
+        request.getSession().setAttribute("LOGIN_USER", userModel);
+
+        return CommonReturnType.create(null);
+    }
+
+    /**
+     * 用户注册API
+     * */
     @PostMapping("/register")
     public CommonReturnType userRegister(@RequestParam("optCode") String optCode,
                                          @RequestParam("name") String name,
@@ -50,13 +71,16 @@ public class UserController extends BaseController {
         userModel.setGender(gender);
         userModel.setTelephone(telephone);
         userModel.setRegisterMode("by telephone");
-        userModel.setEncrtyPassword(EncodeByMD5(password));
+        userModel.setEncrptPassword(EncodeByMD5(password));
 
         userService.register(userModel);
 
         return CommonReturnType.create(null);
     }
 
+    /**
+     * 密码加密
+     * */
     public String EncodeByMD5(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         // 确定计算方法
         MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -67,6 +91,9 @@ public class UserController extends BaseController {
         return encode;
     }
 
+    /**
+     * 用户获取opt短信API
+     * */
     @PostMapping("/getopt")
     public CommonReturnType getOpt(@RequestParam("telephone") String telephone) throws BusinessException {
         if (StringUtils.isEmpty(telephone)) {
@@ -89,6 +116,9 @@ public class UserController extends BaseController {
         return CommonReturnType.create(null);
     }
 
+    /**
+     * 获取用户API
+     * */
     @RequestMapping("/get")
     public CommonReturnType getUser(@RequestParam("id") Integer id) throws BusinessException {
 

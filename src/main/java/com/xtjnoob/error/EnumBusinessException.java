@@ -9,7 +9,9 @@ public enum EnumBusinessException implements CommonError {
     PARAMETER_VALIDATED_ERROR(10001, "非法参数"),
 
     // 未知错误
-    UNKNOWN_ERROR(30001, "未知错误");
+    UNKNOWN_ERROR(30001, "未知错误"),
+
+    USER_LOGIN_FAIL(20002, "登录失败");
 
     private int errCode;
     private String errMsg;

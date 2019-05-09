@@ -40,19 +40,48 @@ public class UserServiceImpl implements UserService {
         if (userModel == null) {
             throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR);
         }
+        // 入参校验
         if (StringUtils.isEmpty(userModel.getName())
                 || userModel.getAge() == null
                 || userModel.getGender() == null
                 || StringUtils.isEmpty(userModel.getTelephone())
-                || StringUtils.isEmpty(userModel.getEncrtyPassword())) {
+                || StringUtils.isEmpty(userModel.getEncrptPassword())) {
             throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR);
         }
 
         UserDO userDO = convertDOFromModel(userModel);
         userDOMapper.insertSelective(userDO);
         UserPasswordDO userPasswordDO = convertPasswordDOFromModel(userModel);
+        userPasswordDO.setUserId(userDO.getId());
         userPasswordDOMapper.insertSelective(userPasswordDO);
         return;
+    }
+
+    @Override
+    public UserModel validateLogin(String telephone, String encrptPassword) throws BusinessException {
+        // 入参校验
+        if (StringUtils.isEmpty(telephone) || StringUtils.isEmpty(encrptPassword)) {
+            throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR, "参数不合法");
+        }
+
+        // 根据手机号查询出userDO
+        UserDO userDO = userDOMapper.selectByTelephone(telephone);
+        if (userDO == null) {
+            throw new BusinessException(EnumBusinessException.USER_LOGIN_FAIL, "用户手机号或者密码不正确");
+        }
+        UserPasswordDO userPasswordDO = userPasswordDOMapper.selectByUserId(userDO.getId());
+        if (userPasswordDO == null) {
+            throw new BusinessException(EnumBusinessException.USER_LOGIN_FAIL, "用户手机号或者密码不正确");
+        }
+
+        // 验证密码是否正确
+        if (!StringUtils.equals(encrptPassword, userPasswordDO.getEncrptPassword())) {
+            throw new BusinessException(EnumBusinessException.USER_LOGIN_FAIL, "用户手机号或者密码不正确");
+        }
+
+        UserModel userModel = convertFromDO(userDO, userPasswordDO);
+
+        return userModel;
     }
 
     // userModel转化成UserDo
@@ -92,7 +121,7 @@ public class UserServiceImpl implements UserService {
         UserModel userModel = new UserModel();
 
         BeanUtils.copyProperties(userDO, userModel);
-        userModel.setEncrtyPassword(userPasswordDO.getEncrptPassword());
+        userModel.setEncrptPassword(userPasswordDO.getEncrptPassword());
 
         return userModel;
     }

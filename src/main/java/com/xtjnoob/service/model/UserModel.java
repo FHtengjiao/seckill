@@ -9,7 +9,7 @@ public class UserModel {
     private String registerMode;
     private String thirdPartyId;
 
-    private String encrtyPassword;
+    private String encrptPassword;
 
     public Integer getId() {
         return id;
@@ -67,11 +67,11 @@ public class UserModel {
         this.thirdPartyId = thirdPartyId;
     }
 
-    public String getEncrtyPassword() {
-        return encrtyPassword;
+    public String getEncrptPassword() {
+        return encrptPassword;
     }
 
-    public void setEncrtyPassword(String encrtyPassword) {
-        this.encrtyPassword = encrtyPassword;
+    public void setEncrptPassword(String encrptPassword) {
+        this.encrptPassword = encrptPassword;
     }
 }
