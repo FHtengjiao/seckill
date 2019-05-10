@@ -8,6 +8,8 @@ import com.xtjnoob.error.BusinessException;
 import com.xtjnoob.error.EnumBusinessException;
 import com.xtjnoob.service.UserService;
 import com.xtjnoob.service.model.UserModel;
+import com.xtjnoob.validator.UserModelValidator;
+import com.xtjnoob.validator.ValidatorResult;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserPasswordDOMapper userPasswordDOMapper;
+
+    @Autowired
+    private UserModelValidator validator;
 
     @Override
     public UserModel getUserById(Integer id) {
@@ -41,12 +46,16 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR);
         }
         // 入参校验
-        if (StringUtils.isEmpty(userModel.getName())
-                || userModel.getAge() == null
-                || userModel.getGender() == null
-                || StringUtils.isEmpty(userModel.getTelephone())
-                || StringUtils.isEmpty(userModel.getEncrptPassword())) {
-            throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR);
+//        if (StringUtils.isEmpty(userModel.getName())
+//                || userModel.getAge() == null
+//                || userModel.getGender() == null
+//                || StringUtils.isEmpty(userModel.getTelephone())
+//                || StringUtils.isEmpty(userModel.getEncrptPassword())) {
+//            throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR);
+//        }
+        ValidatorResult result = validator.validate(userModel);
+        if (result.isHasErrs()) {
+            throw new BusinessException(EnumBusinessException.PARAMETER_VALIDATED_ERROR, result.getErrMsg());
         }
 
         UserDO userDO = convertDOFromModel(userModel);
